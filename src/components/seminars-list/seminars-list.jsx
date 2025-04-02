@@ -1,14 +1,20 @@
-import {useReducer, useEffect} from 'react';
+// Основной компонент управления списком семинаров (отображение, редактирование, удаление)
+
+import {useReducer, useEffect, useState} from 'react';
+import axios from 'axios';
 import {seminarsReducer, initialState} from '../../reducers/seminars-reducer.js';
 import {FETCH_ACTIONS} from '../../actions/index.js';
 import {SERVER_ADDRESS} from '../../constants/server-address.js';
-import axios from 'axios';
+import useModal from '../use-modal/use-modal';
+import DeleteItemWindow from '../delete-item-window/delete-item-window.jsx';
 
 const SeminarsList = () => {
   const [state, dispatch] = useReducer(seminarsReducer, initialState);
   const {items, loading, error} = state;
+  const [deletedItemData, setDeletedItemData] = useState(null);
+  const {isModalOpen, openModal, closeModal, modalContent} = useModal();
 
-  useEffect (() =>{
+  useEffect (() => {
     dispatch({type: FETCH_ACTIONS.PROGRESS});
 
     const getItems = async () => {
@@ -26,22 +32,34 @@ const SeminarsList = () => {
 		getItems();
 	},[]);
 
-  function editListElement (id) {
-    console.log(id);
+  function editListItem (item) {
+    console.log(item);
   }
 
-  function removeListElement (id) {
+  function removeItemAction (id) {
     const deleteItemByID = async (id) => {
       try {
         dispatch({ type: FETCH_ACTIONS.REMOVE_ITEM, id });
         const itemUrl = SERVER_ADDRESS + '/' + id;
         const response = await axios.delete(itemUrl, { method: 'DELETE' });
+        closeModal();
       } catch (err) {
         console.error (err);
         dispatch({type: FETCH_ACTIONS.ERROR, error: err.message});
 			}
     }
     deleteItemByID(id);
+  }
+
+  function removeListItem(itemData) {
+    setDeletedItemData(itemData);
+    openModal(
+      <DeleteItemWindow
+        onClose={closeModal}
+        data={itemData}
+        handleConfirm={()=>removeItemAction(itemData)}
+      />
+    )
   }
 
 	return (
@@ -54,6 +72,7 @@ const SeminarsList = () => {
 					) : (
             <>
             <h1>Список семинаров Kosmoteros</h1>
+            {isModalOpen && modalContent}
             <table>
               <thead>
                 <tr>
@@ -70,12 +89,12 @@ const SeminarsList = () => {
                       <td>{item.date}</td>
                       <td>{item.time}</td>
                       <td>
-                        <button type="button" onClick={() => editListElement(item.id)}>
+                        <button type="button" onClick={() => editListItem(item)}>
                           Править
                         </button>
                       </td>
                       <td>
-                        <button type="button" onClick={() => removeListElement(item.id)}>
+                        <button type="button" onClick={() => removeListItem(item.id)}>
                           Удалить
                         </button>
                       </td>

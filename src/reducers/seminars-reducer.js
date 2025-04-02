@@ -3,7 +3,7 @@ import { FETCH_ACTIONS } from "../actions";
 const initialState = {
   items: [],
   loading: false,
-  error: null
+  error: null,
 }
 
 const seminarsReducer = (state, action) => {
