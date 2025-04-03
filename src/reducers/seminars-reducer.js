@@ -1,3 +1,4 @@
+// seminarsReducer - функция-редюсер для отработки основных действий со списком семинаров в контексте React
 import { FETCH_ACTIONS } from "../actions";
 
 const initialState = {
@@ -33,6 +34,18 @@ const seminarsReducer = (state, action) => {
         ...state,
         loading: false,
         items: state.items.filter((item) => item.id !== action.id),
+      }
+    }
+    case FETCH_ACTIONS.UPDATE_ITEM : {
+      return {
+        ...state,
+        loading: false,
+
+        items: state.items.map(item => {
+          if(item.id == action.updatedItem.id)
+            return action.updatedItem
+          return item;
+        })
       }
     }
     default:{
